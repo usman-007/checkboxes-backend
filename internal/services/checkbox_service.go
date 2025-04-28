@@ -66,7 +66,7 @@ func (s *CheckboxService) UpdateCheckboxState(row uint32, column uint32, value b
 	}
 
     // Publish a message to notify about the update
-    message := fmt.Sprintf("Checkbox (%d,%d) updated to %t", row, column, value)
+    message := fmt.Sprintf("(%d,%d):%t", row, column, value)
     err = s.RedisClient.Publish(ctx, "checkbox_updates", message).Err()
     if err != nil {
         return fmt.Errorf("failed to publish update notification: %w", err)
