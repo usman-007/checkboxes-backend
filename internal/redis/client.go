@@ -38,8 +38,8 @@ func (c *Client) InitializeGridState(ctx context.Context, rows, cols int) error 
 	pipe := c.Client.Pipeline()
 
 	// Iterate through each cell of the grid
-	for r := 0; r <= rows; r++ {
-		for col := 0; col <= cols; col++ {
+	for r := range rows {
+		for col := range cols {
 			// Format the key according to your specified format
 			key := fmt.Sprintf("states:(%d,%d)", r, col)
 
