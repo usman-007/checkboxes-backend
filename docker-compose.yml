@@ -1,13 +1,16 @@
 services:
   app:
+    image: usmani007/checkbox-backend:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      - REDIS_ADDR=redis:6379
-      - SERVER_ADDR=:8080
+      - APP_ENV=${APP_ENV}
+      - SERVER_ADDR=${SERVER_ADDR}
+      - REDIS_ADDR=${REDIS_ADDR}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       - redis
     networks:
