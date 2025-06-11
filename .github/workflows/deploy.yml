@@ -31,7 +31,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
+          tags: usmani007/checkbox-backend:latest
 
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
