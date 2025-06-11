@@ -42,11 +42,15 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/checkbox-backend/docker-compose.yml
 
+      - name: Copy .env file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no .env.deploy ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/checkbox-backend/.env
+
       - name: SSH and deploy on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo apt-get update
-            sudo apt-get install -y docker-compose-plugin  # ensure docker compose is available
+            sudo apt-get install -y docker-compose-plugin
 
             mkdir -p /home/ubuntu/checkbox-backend
             cd /home/ubuntu/checkbox-backend
