@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: CI/CD Pipeline
 
 on:
@@ -32,17 +31,26 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: usmani007/checkbox-backend:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
+
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      - name: Copy docker-compose.yml to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/checkbox-backend/docker-compose.yml
+
       - name: SSH and deploy on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /path/to/your/project
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            sudo apt-get update
+            sudo apt-get install -y docker-compose-plugin  # ensure docker compose is available
+
+            mkdir -p /home/ubuntu/checkbox-backend
+            cd /home/ubuntu/checkbox-backend
+
+            docker compose pull
+            docker compose up -d
           EOF
