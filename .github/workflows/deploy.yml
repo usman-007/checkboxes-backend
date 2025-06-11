@@ -11,43 +11,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Echo username and password
+        run: |
+          echo "Username: ${{ secrets.DOCKER_HUB_USERNAME }}"
+          echo "Password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}"
 
-    - name: Build and Push Docker image
-      run: |
-        IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend
-        docker build -t $IMAGE_NAME:latest .
-        docker push $IMAGE_NAME:latest
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Add SSH Key
-      run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
-        chmod 600 ec2_key.pem
 
-    - name: SSH and Deploy on EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          set -e
-          
-          echo "Pulling latest image..."
-          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
 
-          echo "Stopping existing container..."
-          docker stop checkbox-backend || true && docker rm checkbox-backend || true
+      - name: Build and Push Docker image
+        run: |
+          IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
 
-          echo "Running new container..."
-          docker run -d \
-            --name checkbox-backend \
-            -p 80:8080 \
-            ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
-        EOF
+      - name: Add SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
+          chmod 600 ec2_key.pem
+
+      - name: SSH and Deploy on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+            
+            echo "Pulling latest image..."
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
+
+            echo "Stopping existing container..."
+            docker stop checkbox-backend || true && docker rm checkbox-backend || true
+
+            echo "Running new container..."
+            docker run -d \
+              --name checkbox-backend \
+              -p 80:8080 \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/checkbox-backend:latest
+          EOF
