@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/usman-007/checkbox-backend/api/handlers"
 	"github.com/usman-007/checkbox-backend/internal/redis"
 	"github.com/usman-007/checkbox-backend/internal/services"
@@ -11,6 +12,9 @@ import (
 func Setup(router *gin.Engine, redisClient *redis.Client) {
 	// Health check
 	router.GET("/health", handlers.HealthCheck)
+
+	// Prometheus metrics endpoint
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	
 	// Initialize services
 	checkboxService := services.NewCheckboxService(redisClient.Client)
@@ -22,15 +26,6 @@ func Setup(router *gin.Engine, redisClient *redis.Client) {
 	
 	// Start Redis subscription for WebSocket updates in a goroutine
 	go websocketHandler.StartRedisSubscription()
-
-	redis := router.Group("/redis")
-	{
-		redis.DELETE("", redisTestHandler.ClearRedis)
-		redis.GET("", redisTestHandler.TestRedis)
-	}
-	
-	// WebSocket endpoint
-	router.GET("/ws", websocketHandler.HandleWebSocket)
 	
 	// API v1 routes
 	v1 := router.Group("/api/v1")

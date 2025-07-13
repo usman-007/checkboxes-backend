@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"github.com/usman-007/checkbox-backend/internal/monitoring"
 	"github.com/usman-007/checkbox-backend/internal/services"
 )
 
@@ -63,6 +64,8 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 		h.clients = make(map[*websocket.Conn]bool)
 	}
 	h.clients[conn] = true
+	// Update WebSocket metrics
+	monitoring.WebSocketConnections.Inc()
 	h.mutex.Unlock()
 
 	// --- Unregister client when the connection closes ---
@@ -70,6 +73,8 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 		h.mutex.Lock()
 		if _, ok := h.clients[conn]; ok {
 			delete(h.clients, conn)
+			// Update WebSocket metrics
+			monitoring.WebSocketConnections.Dec()
 			log.Printf("Client unregistered: %s. Remaining clients: %d", conn.RemoteAddr(), len(h.clients))
 		} else {
 			log.Printf("Attempted to unregister client %s but it was already removed.", conn.RemoteAddr())
@@ -111,6 +116,8 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 			}
 			break
 		}
+		// Record incoming message metric
+		monitoring.WebSocketMessagesTotal.WithLabelValues("received").Inc()
 		// Optional: Handle messages received from the client if needed
 		log.Printf("Received message from client %s (type %d): %s", conn.RemoteAddr(), messageType, message)
 	}
@@ -172,6 +179,8 @@ func (h *WebSocketHandler) StartRedisSubscription() {
 					// Remove the client from the map
 					delete(h.clients, client)
 				} else {
+					// Record outgoing message metric
+					monitoring.WebSocketMessagesTotal.WithLabelValues("sent").Inc()
 					// log.Printf("Successfully sent message to client %p (%s)", client, client.RemoteAddr()) // Verbose logging
 					broadcastCount++
 				}
