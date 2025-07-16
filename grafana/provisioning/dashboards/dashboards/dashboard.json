@@ -75,7 +75,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "http_requests_total{method!=\"OPTIONS\", endpoint!=\"/metrics\"}",
+          "expr": "http_requests_total{method!=\"OPTIONS\", endpoint!=\"/metrics\", status!=\"404\", endpoint!=\"/api/v1/ws\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{method}} - {{endpoint}} - {{status}}",
@@ -487,5 +487,5 @@
   "timezone": "browser",
   "title": "Checkboxes Backend Monitoring dashboard",
   "uid": "346dd9d4-8c08-4070-a5ad-c606224867cd",
-  "version": 5
+  "version": 2
 }
