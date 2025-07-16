@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/usman-007/checkbox-backend/internal/monitoring"
 	"github.com/usman-007/checkbox-backend/internal/services"
 )
 
@@ -83,6 +84,9 @@ func (h *CheckboxHandler) UpdateCheckbox(c *gin.Context) {
 		})
 		return
 	}
+
+	// Record metrics for successful grid state update
+	monitoring.GridStateUpdates.Inc()
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Checkbox state updated successfully",
